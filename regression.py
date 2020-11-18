@@ -17,16 +17,33 @@ def predict_price(area) -> float:
     """
     response = requests.get(TRAIN_DATA_URL)
     # YOUR IMPLEMENTATION HERE
+    
     ...
-
+    train_set = pandas.read_csv('linreg_train.csv', header = None).iloc[:, 1:].values.T
+    X_train = train_set[:, 0]
+    m = numpy.shape(X_train)[0]
+    X_train = numpy.matrix([numpy.ones(m), X_train[:]]).T
+    Y_train = train_set[:, 1].reshape(m, 1)
+    A = numpy.linalg.inv((X_train.T).dot(X_train)).dot(X_train.T).dot(Y_train)
+    n = numpy.shape(area)[0]
+    area = numpy.matrix([numpy.ones(n), area]).T
+    Y_pred = area.dot(A)
+    return Y_pred
 
 if __name__ == "__main__":
     # DO NOT CHANGE THE FOLLOWING CODE
     from data import validation_data
     areas = numpy.array(list(validation_data.keys()))
+    n = numpy.shape(areas)[0]
     prices = numpy.array(list(validation_data.values()))
     predicted_prices = predict_price(areas)
-    rmse = numpy.sqrt(numpy.mean((predicted_prices - prices) ** 2))
+    #rmse = numpy.sqrt(numpy.mean((predicted_prices[:,0] - prices) ** 2))
+    total = 0
+    for i in range(n):
+        total += (predicted_prices[i,0] - prices[i]) ** 2
+    rmse = total / n
+    rmse = rmse ** 0.5
+    print(rmse)
     try:
         assert rmse < 170
     except AssertionError:
